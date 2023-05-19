@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# store name of current branch and default branch
+BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+DEFAULT_BRANCH=$(git remote show $(git remote) | sed -n '/HEAD branch/s/.*: //p')
+
+echo "Initiating Rebase $DEFAULT_BRANCH to $BRANCH"
+
+if [ "$BRANCH" = "$DEFAULT_BRANCH" ];
+then
+  # checkout DEFAULT_BRANCH
+  git checkout "$DEFAULT_BRANCH" && git pull origin "$DEFAULT_BRANCH" && git submodule update --init > /dev/null 2>&1
+  echo "You're already on default branch: $DEFAULT_BRANCH. Can't rebase. But I pulled the latest changes for you."
+  exit 1
+fi
+
+OUTPUT=$(git stash)
+
+# checkout DEFAULT_BRANCH
+git checkout "$DEFAULT_BRANCH" && git pull origin "$DEFAULT_BRANCH" && git submodule update --init > /dev/null 2>&1
+
+# fetch and prune all the branches
+git fetch --all --prune > /dev/null 2>&1
+
+# checkout the original branch
+git checkout "$BRANCH"
+
+# rebase on main
+git rebase "$DEFAULT_BRANCH"
+
+if [ $? != 0 ];
+then
+  echo "Default Rebasing Strategy Failed. Resolve Conflicts and then run git rebase --continue"
+  exit 2
+fi
+
+if [ "$OUTPUT" != "No local changes to save" ]; then
+  git stash pop >> /dev/null 2>&1
+fi
+
+# prompt to push the changes
+# read -p "Would you like to push the changes? [y/n] " -n 1 -r
+# if [[ $REPLY =~ ^[Yy]$ ]];
+# then
+#   git pof $BRANCH 
+# fi

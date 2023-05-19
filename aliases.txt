@@ -1,0 +1,10 @@
+alias ls='ls -lah'
+alias c="clear"
+alias gotoMain='git checkout main && git pull origin main && git submodule update --init'
+alias ide='open -a "Intellij Idea CE"'
+alias ec='subl ~/.aws/credentials'
+alias eza='subl ~/.zsh_aliases'
+alias ezrc='subl ~/.zshrc'
+alias python=/usr/bin/python3
+alias pip=/usr/bin/pip3
+alias kc=kubectl
